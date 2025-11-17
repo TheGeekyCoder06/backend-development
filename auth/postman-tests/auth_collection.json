@@ -1,0 +1,344 @@
+{
+	"info": {
+		"_postman_id": "dc40ac07-9282-4ba2-abff-29d626bea95f",
+		"name": "Auth",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "21336375"
+	},
+	"item": [
+		{
+			"name": "Register User",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"username\": \"two\",\n  \"email\": \"two@example.com\",\n  \"password\": \"123456\",\n  \"role\": \"admin\"\n}\n"
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/auth/register",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"auth",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"two@example.com\",\n  \"password\": \"123456\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/auth/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Welcome page",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTFhY2QzM2U1ZGI3ZWYwMTAyMjk0NGQiLCJ1c2VybmFtZSI6InR3byIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2MzM2NDE1NiwiZXhwIjoxNzYzMzY1MDU2fQ.jswMugS0aM8DWJqE-kE2cmV98Q9bOY73gCuWBDDh7a4",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:3000/api/home/welcome",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"home",
+						"welcome"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Upload image only for admin",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTFhY2M1OWU1ZGI3ZWYwMTAyMjk0M2IiLCJ1c2VybmFtZSI6Im9uZSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2MzM2MzkzNSwiZXhwIjoxNzYzMzY0ODM1fQ.pMRTaJPDXz48ByPGh-pbKYZsblwIjVQ1JPD0cZyhYkY",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "image",
+							"type": "file",
+							"src": "/Users/muralic/Downloads/IMG_4381.JPG"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/images/upload",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"images",
+						"upload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Admin welcome page",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTFhY2M1OWU1ZGI3ZWYwMTAyMjk0M2IiLCJ1c2VybmFtZSI6Im9uZSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2MzM2MzkzNSwiZXhwIjoxNzYzMzY0ODM1fQ.pMRTaJPDXz48ByPGh-pbKYZsblwIjVQ1JPD0cZyhYkY",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:3000/api/admin/welcome",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"admin",
+						"welcome"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all images",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTFhY2QzM2U1ZGI3ZWYwMTAyMjk0NGQiLCJ1c2VybmFtZSI6InR3byIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2MzM2NDE1NiwiZXhwIjoxNzYzMzY1MDU2fQ.jswMugS0aM8DWJqE-kE2cmV98Q9bOY73gCuWBDDh7a4",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/images/get?page=3&limit=2",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"images",
+						"get"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "3"
+						},
+						{
+							"key": "limit",
+							"value": "2"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all users",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTFhY2M1OWU1ZGI3ZWYwMTAyMjk0M2IiLCJ1c2VybmFtZSI6Im9uZSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2MzM2MzkzNSwiZXhwIjoxNzYzMzY0ODM1fQ.pMRTaJPDXz48ByPGh-pbKYZsblwIjVQ1JPD0cZyhYkY",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:3000/api/home/get-users",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"home",
+						"get-users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Change Password",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTFhY2M1OWU1ZGI3ZWYwMTAyMjk0M2IiLCJ1c2VybmFtZSI6Im9uZSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2MzM2MzkzNSwiZXhwIjoxNzYzMzY0ODM1fQ.pMRTaJPDXz48ByPGh-pbKYZsblwIjVQ1JPD0cZyhYkY",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"oldPassword\" : \"123456\",\n    \"newPassword\" : \"12345\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/auth/change-password",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"auth",
+						"change-password"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete an image",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTFhY2QzM2U1ZGI3ZWYwMTAyMjk0NGQiLCJ1c2VybmFtZSI6InR3byIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2MzM2NDE1NiwiZXhwIjoxNzYzMzY1MDU2fQ.jswMugS0aM8DWJqE-kE2cmV98Q9bOY73gCuWBDDh7a4",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/images/delete/691acd04e5db7ef010229448",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"images",
+						"delete",
+						"691acd04e5db7ef010229448"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
