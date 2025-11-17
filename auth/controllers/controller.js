@@ -114,4 +114,22 @@ const loginController = async (req, res) => {
   }
 };
 
-export { registerController, loginController };
+// get all users controller
+const getAllUsersController = async (req, res) => {
+  try {
+    const users = await User.find({}).select("-password").sort({ createdAt: -1 });
+    return res.status(200).json({
+      success: true,
+      data: users,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in get all users controller",
+      error,
+    });
+  }
+}
+
+export { registerController, loginController  , getAllUsersController };

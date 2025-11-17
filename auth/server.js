@@ -5,6 +5,7 @@ import connectDB from "./db/dbConfig.js";
 import router from './routes/routes.js'
 import homeRouter from './routes/home-routes.js'
 import adminRouter from './routes/admin-routes.js'
+import image from './routes/image-routes.js'
 const app = express();
 
 // Database connection
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use('/api/auth', router);
 app.use('/api/home', homeRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/images', image);
 
 // Sample route
 app.get("/", (req, res) => {
