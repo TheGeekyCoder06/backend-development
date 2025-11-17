@@ -132,4 +132,64 @@ const getAllUsersController = async (req, res) => {
   }
 }
 
-export { registerController, loginController  , getAllUsersController };
+const changePassword = async (req , res) => {
+  try{
+    const userId = req.user.userId; // gives the current logged in user id
+    const { oldPassword , newPassword}  = req.body;
+    
+    // validation
+    if(!oldPassword || !newPassword){
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
+    }
+
+    // check if both passwords are same
+    if(oldPassword === newPassword){
+      return res.status(400).json({
+        success: false,
+        message: "New password must be different from old password",
+      });
+    }
+
+    // get user from db
+    const user = await User.findById(userId);
+    if(!user){
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // compare old password
+    const isMatch = await bcrypt.compare(oldPassword , user.password);
+    if(!isMatch){
+      return res.status(401).json({
+        success: false,
+        message: "Old password is incorrect",
+      });
+    }
+
+    // old password is correct , hash new password
+    const hashedNewPassword = await bcrypt.hash(newPassword , 10);
+
+    // update password in db
+    user.password = hashedNewPassword;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Password changed successfully",
+    });
+  }catch(err){
+    console.log(err);
+    return res.status(500).json({
+      success: false,
+      message: "Error in change password controller",
+      error,
+    });
+  }
+}
+
+export { registerController, loginController  , getAllUsersController, changePassword };
