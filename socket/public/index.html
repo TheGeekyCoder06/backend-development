@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Socket IO — Chat</title>
+</head>
+<body style="font-family: Arial, sans-serif; background:#eef2f6; margin:0; padding:0; height:100vh; display:flex;">
+
+  <!-- Sidebar: users -->
+  <aside id="sidebar" style="width:300px; background:#fff; padding:18px; box-shadow:2px 0 8px rgba(0,0,0,0.06);">
+    <h2 style="margin:0 0 12px 0; font-size:20px; color:#222; text-align:center;">Online Users</h2>
+    <div id="users-container" style="overflow:auto; max-height:70vh; padding-right:6px;"></div>
+  </aside>
+
+  <!-- Main chat -->
+  <main style="flex:1; display:flex; flex-direction:column; padding:20px;">
+    <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <h1 style="margin:0; font-size:20px; color:#111;">Socket IO Chat</h1>
+      <div id="typing-indicator" style="font-size:13px; color:#666; height:18px;"></div>
+    </header>
+
+    <!-- messages area -->
+    <section id="chat" style="flex:1; background:#fff; border-radius:12px; padding:18px; box-shadow:0 6px 20px rgba(17,24,39,0.06); overflow:auto;"></section>
+
+    <!-- input -->
+    <form id="message-form" style="display:flex; gap:10px; margin-top:14px; align-items:center;">
+      <input id="message-input" autocomplete="off" placeholder="Type a message..."
+             style="flex:1; padding:12px 14px; border-radius:999px; border:1px solid #d1d5db; outline:none; font-size:15px; background:#fff;" />
+      <button type="submit" style="padding:10px 18px; border-radius:999px; border:none; background:#10b981; color:white; font-weight:600; cursor:pointer;">
+        Send
+      </button>
+    </form>
+  </main>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const chat = document.getElementById('chat');
+    const usersContainer = document.getElementById('users-container');
+    const messageForm = document.getElementById('message-form');
+    const messageInput = document.getElementById('message-input');
+    const typingIndicator = document.getElementById('typing-indicator');
+
+    // prompt and register
+    let userName = '';
+    while (!userName) {
+      userName = prompt('Enter your name:')?.trim();
+    }
+    socket.emit('new-user', userName);
+
+    // local state
+    let users = []; // array of {name, color}
+    let typingUsers = new Set();
+    let lastTypingAt = 0;
+    const TYPING_TIMEOUT = 900; // ms
+
+    // helper: format time hh:mm (local)
+    function formatTime(ts) {
+      const d = new Date(ts);
+      let hh = d.getHours();
+      let mm = d.getMinutes();
+      const ampm = hh >= 12 ? 'PM' : 'AM';
+      hh = hh % 12 || 12;
+      mm = mm < 10 ? '0' + mm : mm;
+      return `${hh}:${mm} ${ampm}`;
+    }
+
+    // render user list
+    function renderUsers(list) {
+      users = list; // [{name,color}]
+      usersContainer.innerHTML = '';
+      users.forEach(u => {
+        const row = document.createElement('div');
+        row.style.display = 'flex';
+        row.style.alignItems = 'center';
+        row.style.gap = '12px';
+        row.style.padding = '8px 6px';
+        row.style.borderRadius = '8px';
+        row.style.cursor = 'default';
+        row.onmouseenter = () => row.style.background = '#f8fafc';
+        row.onmouseleave = () => row.style.background = 'transparent';
+
+        // avatar circle
+        const avatar = document.createElement('div');
+        avatar.textContent = u.name.charAt(0).toUpperCase();
+        avatar.style.width = '40px';
+        avatar.style.height = '40px';
+        avatar.style.borderRadius = '50%';
+        avatar.style.display = 'flex';
+        avatar.style.alignItems = 'center';
+        avatar.style.justifyContent = 'center';
+        avatar.style.fontWeight = '700';
+        avatar.style.color = '#fff';
+        avatar.style.background = u.color || '#888';
+
+        // name + online dot
+        const meta = document.createElement('div');
+        const nameEl = document.createElement('div');
+        nameEl.textContent = u.name;
+        nameEl.style.fontWeight = '600';
+        nameEl.style.color = '#111';
+        nameEl.style.fontSize = '14px';
+
+        const status = document.createElement('div');
+        status.style.display = 'flex';
+        status.style.alignItems = 'center';
+        status.style.gap = '8px';
+        status.style.fontSize = '12px';
+        status.style.color = '#6b7280';
+
+        const dot = document.createElement('span');
+        dot.style.width = '8px';
+        dot.style.height = '8px';
+        dot.style.borderRadius = '50%';
+        dot.style.background = '#10b981';
+        dot.style.display = 'inline-block';
+        status.appendChild(dot);
+        const txt = document.createElement('span');
+        txt.textContent = 'online';
+        status.appendChild(txt);
+
+        meta.appendChild(nameEl);
+        meta.appendChild(status);
+
+        row.appendChild(avatar);
+        row.appendChild(meta);
+        usersContainer.appendChild(row);
+      });
+    }
+
+    // add chat message (system or user)
+    function addMessage({ name, message, color, timestamp, system=false, mine=false }) {
+      const wrap = document.createElement('div');
+      wrap.style.display = 'flex';
+      wrap.style.marginBottom = '10px';
+      wrap.style.alignItems = 'flex-end';
+
+      if (system) {
+        // centered small system message
+        const sys = document.createElement('div');
+        sys.textContent = message;
+        sys.style.margin = '8px auto';
+        sys.style.padding = '6px 10px';
+        sys.style.borderRadius = '10px';
+        sys.style.fontSize = '13px';
+        sys.style.color = '#374151';
+        sys.style.background = '#f3f4f6';
+        sys.style.opacity = '0.95';
+        chat.appendChild(sys);
+        chat.scrollTop = chat.scrollHeight;
+        return;
+      }
+
+      // bubble
+      const bubble = document.createElement('div');
+      bubble.style.maxWidth = '70%';
+      bubble.style.padding = '10px 12px';
+      bubble.style.borderRadius = '14px';
+      bubble.style.margin = '4px';
+      bubble.style.boxShadow = '0 1px 0 rgba(0,0,0,0.03)';
+      bubble.style.fontSize = '14px';
+      bubble.style.lineHeight = '1.25';
+      bubble.style.wordBreak = 'break-word';
+      bubble.style.display = 'inline-block';
+
+      // meta row: name + time (only for others)
+      const metaRow = document.createElement('div');
+      metaRow.style.display = 'flex';
+      metaRow.style.justifyContent = 'space-between';
+      metaRow.style.alignItems = 'center';
+      metaRow.style.marginBottom = '6px';
+      metaRow.style.fontSize = '12px';
+      metaRow.style.color = '#374151';
+
+      const nameEl = document.createElement('strong');
+      nameEl.textContent = name;
+      nameEl.style.fontWeight = '700';
+      nameEl.style.marginRight = '8px';
+
+      const timeEl = document.createElement('span');
+      timeEl.textContent = formatTime(timestamp);
+      timeEl.style.fontSize = '11px';
+      timeEl.style.color = '#6b7280';
+      timeEl.style.marginLeft = '8px';
+
+      metaRow.appendChild(nameEl);
+      metaRow.appendChild(timeEl);
+
+      const textEl = document.createElement('div');
+      textEl.textContent = message;
+
+      // apply bubble color depending on mine / other
+      if (mine) {
+        wrap.style.justifyContent = 'flex-end';
+        bubble.style.background = '#dcfce7'; // light green
+        bubble.style.color = '#064e3b';
+        bubble.style.borderTopRightRadius = '2px';
+      } else {
+        wrap.style.justifyContent = 'flex-start';
+        bubble.style.background = '#ffffff';
+        bubble.style.color = '#0f172a';
+        bubble.style.borderTopLeftRadius = '2px';
+      }
+
+      // avatar for other messages
+      if (!mine) {
+        const avatar = document.createElement('div');
+        avatar.textContent = name.charAt(0).toUpperCase();
+        avatar.style.width = '36px';
+        avatar.style.height = '36px';
+        avatar.style.borderRadius = '50%';
+        avatar.style.display = 'flex';
+        avatar.style.alignItems = 'center';
+        avatar.style.justifyContent = 'center';
+        avatar.style.fontWeight = '700';
+        avatar.style.color = '#fff';
+        avatar.style.marginRight = '10px';
+        avatar.style.flex = '0 0 auto';
+        avatar.style.background = color || '#888';
+        wrap.appendChild(avatar);
+      }
+
+      bubble.appendChild(metaRow);
+      bubble.appendChild(textEl);
+      wrap.appendChild(bubble);
+      chat.appendChild(wrap);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    // server events
+    socket.on('user-list', (list) => {
+      // list: [{name, color}]
+      renderUsers(list);
+    });
+
+    socket.on('user-connected', (name) => {
+      addMessage({ system: true, message: `${name} joined the chat` });
+    });
+
+    socket.on('user-disconnected', (name) => {
+      addMessage({ system: true, message: `${name} left the chat` });
+    });
+
+    socket.on('chat-message', (data) => {
+      // data: { name, message, color, timestamp }
+      const mine = data.name === userName;
+      addMessage({ ...data, mine });
+    });
+
+    socket.on('user-typing', (name) => {
+      if (name === userName) return; // ignore self
+      typingUsers.add(name);
+      renderTyping();
+    });
+
+    socket.on('user-stop-typing', (name) => {
+      typingUsers.delete(name);
+      renderTyping();
+    });
+
+    function renderTyping() {
+      if (typingUsers.size === 0) {
+        typingIndicator.textContent = '';
+        return;
+      }
+      const arr = Array.from(typingUsers);
+      if (arr.length === 1) typingIndicator.textContent = `${arr[0]} is typing...`;
+      else if (arr.length === 2) typingIndicator.textContent = `${arr[0]} and ${arr[1]} are typing...`;
+      else typingIndicator.textContent = `${arr[0]} and ${arr.length - 1} others are typing...`;
+    }
+
+    // typing detection
+    let typing = false;
+    let typingTimer;
+
+    function updateTyping() {
+      if (!typing) {
+        typing = true;
+        socket.emit('typing');
+      }
+      lastTypingAt = Date.now();
+
+      clearTimeout(typingTimer);
+      typingTimer = setTimeout(() => {
+        const timeDiff = Date.now() - lastTypingAt;
+        if (timeDiff >= TYPING_TIMEOUT && typing) {
+          typing = false;
+          socket.emit('stop-typing');
+        }
+      }, TYPING_TIMEOUT);
+    }
+
+    messageInput.addEventListener('input', () => {
+      updateTyping();
+    });
+
+    // send message
+    messageForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const text = messageInput.value.trim();
+      if (!text) return;
+      const payload = { message: text };
+      // local echo will be handled when server emits back the chat-message
+      socket.emit('send-chat-message', payload.message);
+      messageInput.value = '';
+      typing = false;
+      socket.emit('stop-typing');
+    });
+
+    // small UX: focus input on load
+    messageInput.focus();
+  </script>
+</body>
+</html>
